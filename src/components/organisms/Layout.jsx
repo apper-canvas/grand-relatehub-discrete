@@ -102,7 +102,7 @@ const Layout = () => {
     }
   };
 
-  return (
+return (
     <div className="min-h-screen bg-background">
       <Header
         onAddContact={() => openModal("contact")}
@@ -111,9 +111,12 @@ const Layout = () => {
       />
       
       <main className="flex-1">
-        <Outlet />
+        <Outlet context={{
+          onAddContact: () => openModal("contact"),
+          onAddDeal: () => openModal("deal"),
+          onAddTask: () => openModal("task")
+        }} />
       </main>
-
       {/* Modals */}
       <ContactModal
         isOpen={modals.contact.isOpen}

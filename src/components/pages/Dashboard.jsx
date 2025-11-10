@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useOutletContext } from "react-router-dom";
 import { motion } from "framer-motion";
 import { format, subDays } from "date-fns";
 import Chart from "react-apexcharts";
@@ -17,7 +18,9 @@ import { taskService } from "@/services/api/taskService";
 import { activityService } from "@/services/api/activityService";
 
 const Dashboard = () => {
-const [stats, setStats] = useState({
+  const { onAddContact, onAddDeal, onAddTask } = useOutletContext();
+  
+  const [stats, setStats] = useState({
     totalContacts: 0,
     totalDeals: 0,
     pipelineValue: 0,
@@ -475,15 +478,24 @@ try {
           >
             <h3 className="font-semibold text-gray-900 mb-4">Quick Actions</h3>
             <div className="space-y-2">
-              <button className="w-full text-left px-4 py-2 rounded-lg text-sm hover:bg-gray-50 transition-colors flex items-center space-x-2">
+<button 
+                onClick={onAddContact}
+                className="w-full text-left px-4 py-2 rounded-lg text-sm hover:bg-gray-50 transition-colors flex items-center space-x-2"
+              >
                 <ApperIcon name="UserPlus" className="h-4 w-4 text-primary" />
                 <span>Add New Contact</span>
               </button>
-              <button className="w-full text-left px-4 py-2 rounded-lg text-sm hover:bg-gray-50 transition-colors flex items-center space-x-2">
+              <button 
+                onClick={onAddDeal}
+                className="w-full text-left px-4 py-2 rounded-lg text-sm hover:bg-gray-50 transition-colors flex items-center space-x-2"
+              >
                 <ApperIcon name="Plus" className="h-4 w-4 text-primary" />
                 <span>Create New Deal</span>
               </button>
-              <button className="w-full text-left px-4 py-2 rounded-lg text-sm hover:bg-gray-50 transition-colors flex items-center space-x-2">
+              <button 
+                onClick={onAddTask}
+                className="w-full text-left px-4 py-2 rounded-lg text-sm hover:bg-gray-50 transition-colors flex items-center space-x-2"
+              >
                 <ApperIcon name="Calendar" className="h-4 w-4 text-primary" />
                 <span>Schedule Follow-up</span>
               </button>
