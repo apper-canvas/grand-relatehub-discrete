@@ -1,5 +1,7 @@
-import { getApperClient } from "@/services/apperClient";
 import { toast } from "react-toastify";
+import React from "react";
+import { getApperClient } from "@/services/apperClient";
+import Error from "@/components/ui/Error";
 
 class ActivityService {
   constructor() {
@@ -164,14 +166,24 @@ class ActivityService {
       }
 
       // Only include updateable fields
-      const payload = {
+const payload = {
         records: [{
           description_c: activityData.description_c,
           type_c: activityData.type_c,
           timestamp_c: activityData.timestamp_c,
           contact_id_c: activityData.contact_id_c ? parseInt(activityData.contact_id_c) : null,
           deal_id_c: activityData.deal_id_c ? parseInt(activityData.deal_id_c) : null
-        }]
+        }].map(record => {
+          // Filter out empty, null, and undefined values to prevent "Each record must contain at least one field" error
+          const filteredRecord = {};
+          Object.keys(record).forEach(key => {
+            const value = record[key];
+            if (value !== null && value !== undefined && value !== '' && !isNaN(value)) {
+              filteredRecord[key] = value;
+            }
+          });
+          return filteredRecord;
+        })
       };
 
       const response = await apperClient.createRecord(this.tableName, payload);
@@ -214,7 +226,7 @@ class ActivityService {
       }
 
       // Only include updateable fields
-      const payload = {
+const payload = {
         records: [{
           Id: parseInt(id),
           description_c: activityData.description_c,
@@ -222,7 +234,17 @@ class ActivityService {
           timestamp_c: activityData.timestamp_c,
           contact_id_c: activityData.contact_id_c ? parseInt(activityData.contact_id_c) : null,
           deal_id_c: activityData.deal_id_c ? parseInt(activityData.deal_id_c) : null
-        }]
+        }].map(record => {
+          // Filter out empty, null, and undefined values to prevent "Each record must contain at least one field" error
+          const filteredRecord = {};
+          Object.keys(record).forEach(key => {
+            const value = record[key];
+            if (value !== null && value !== undefined && value !== '' && !isNaN(value)) {
+              filteredRecord[key] = value;
+            }
+          });
+          return filteredRecord;
+        })
       };
 
       const response = await apperClient.updateRecord(this.tableName, payload);

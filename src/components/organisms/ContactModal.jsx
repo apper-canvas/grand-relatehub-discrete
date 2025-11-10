@@ -71,12 +71,17 @@ const ContactModal = ({ isOpen, onClose, contact, onSave }) => {
 
     setIsLoading(true);
     try {
-      const contactData = {
-        ...formData,
-        tags: formData.tags
+const contactData = {
+        name_c: formData.name,
+        email_c: formData.email,
+        phone_c: formData.phone,
+        company_c: formData.company,
+        notes_c: formData.notes,
+        tags_c: formData.tags
           .split(",")
           .map(tag => tag.trim())
-          .filter(tag => tag.length > 0),
+          .filter(tag => tag.length > 0)
+          .join(",")
       };
 
       await onSave(contactData);

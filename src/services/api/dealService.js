@@ -84,13 +84,23 @@ class DealService {
       // Only include updateable fields
       const payload = {
         records: [{
-          title_c: dealData.title_c,
+title_c: dealData.title_c,
           value_c: dealData.value_c,
           stage_c: dealData.stage_c,
           probability_c: dealData.probability_c,
           expected_close_date_c: dealData.expected_close_date_c,
           contact_id_c: parseInt(dealData.contact_id_c)
-        }]
+        }].map(record => {
+          // Filter out empty, null, and undefined values to prevent "Each record must contain at least one field" error
+          const filteredRecord = {};
+          Object.keys(record).forEach(key => {
+            const value = record[key];
+            if (value !== null && value !== undefined && value !== '' && !isNaN(value)) {
+              filteredRecord[key] = value;
+            }
+          });
+          return filteredRecord;
+        })
       };
 
       const response = await apperClient.createRecord(this.tableName, payload);
@@ -136,13 +146,23 @@ class DealService {
       const payload = {
         records: [{
           Id: parseInt(id),
-          title_c: dealData.title_c,
+title_c: dealData.title_c,
           value_c: dealData.value_c,
           stage_c: dealData.stage_c,
           probability_c: dealData.probability_c,
           expected_close_date_c: dealData.expected_close_date_c,
           contact_id_c: parseInt(dealData.contact_id_c)
-        }]
+        }].map(record => {
+          // Filter out empty, null, and undefined values to prevent "Each record must contain at least one field" error
+          const filteredRecord = {};
+          Object.keys(record).forEach(key => {
+            const value = record[key];
+            if (value !== null && value !== undefined && value !== '' && !isNaN(value)) {
+              filteredRecord[key] = value;
+            }
+          });
+          return filteredRecord;
+        })
       };
 
       const response = await apperClient.updateRecord(this.tableName, payload);

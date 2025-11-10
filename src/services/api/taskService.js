@@ -1,5 +1,7 @@
-import { getApperClient } from "@/services/apperClient";
 import { toast } from "react-toastify";
+import React from "react";
+import { getApperClient } from "@/services/apperClient";
+import Error from "@/components/ui/Error";
 
 class TaskService {
   constructor() {
@@ -115,14 +117,25 @@ class TaskService {
       // Only include updateable fields
       const payload = {
         records: [{
-          title_c: taskData.title_c,
+title_c: taskData.title_c,
           completed_c: taskData.completed_c,
           due_date_c: taskData.due_date_c,
           contact_id_c: parseInt(taskData.contact_id_c)
-        }]
-      };
+        }].map(record => {
+          // Filter out empty, null, and undefined values to prevent "Each record must contain at least one field" error
+          const filteredRecord = {};
+          Object.keys(record).forEach(key => {
+            const value = record[key];
+            if (value !== null && value !== undefined && value !== '' && !isNaN(value)) {
+              filteredRecord[key] = value;
+            }
+});
+          return filteredRecord;
+        })
+      }]
+    };
 
-      const response = await apperClient.createRecord(this.tableName, payload);
+    const response = await apperClient.createRecord(this.tableName, payload);
 
       if (!response.success) {
         console.error(response.message);
@@ -165,14 +178,25 @@ class TaskService {
       const payload = {
         records: [{
           Id: parseInt(id),
-          title_c: taskData.title_c,
+title_c: taskData.title_c,
           completed_c: taskData.completed_c,
           due_date_c: taskData.due_date_c,
           contact_id_c: parseInt(taskData.contact_id_c)
-        }]
-      };
+        }].map(record => {
+          // Filter out empty, null, and undefined values to prevent "Each record must contain at least one field" error
+          const filteredRecord = {};
+          Object.keys(record).forEach(key => {
+            const value = record[key];
+            if (value !== null && value !== undefined && value !== '' && !isNaN(value)) {
+              filteredRecord[key] = value;
+            }
+});
+          return filteredRecord;
+        })
+      }]
+    };
 
-      const response = await apperClient.updateRecord(this.tableName, payload);
+    const response = await apperClient.updateRecord(this.tableName, payload);
 
       if (!response.success) {
         console.error(response.message);

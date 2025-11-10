@@ -1,5 +1,7 @@
-import { getApperClient } from "@/services/apperClient";
 import { toast } from "react-toastify";
+import React from "react";
+import { getApperClient } from "@/services/apperClient";
+import Error from "@/components/ui/Error";
 
 class ContactService {
   constructor() {
@@ -82,7 +84,7 @@ class ContactService {
       }
 
       // Only include updateable fields
-      const payload = {
+const payload = {
         records: [{
           name_c: contactData.name_c,
           email_c: contactData.email_c,
@@ -90,7 +92,17 @@ class ContactService {
           company_c: contactData.company_c,
           notes_c: contactData.notes_c,
           tags_c: contactData.tags_c
-        }]
+        }].map(record => {
+          // Filter out empty, null, and undefined values to prevent "Each record must contain at least one field" error
+          const filteredRecord = {};
+          Object.keys(record).forEach(key => {
+            const value = record[key];
+            if (value !== null && value !== undefined && value !== '') {
+              filteredRecord[key] = value;
+            }
+          });
+          return filteredRecord;
+        })
       };
 
       const response = await apperClient.createRecord(this.tableName, payload);
@@ -133,7 +145,7 @@ class ContactService {
       }
 
       // Only include updateable fields
-      const payload = {
+const payload = {
         records: [{
           Id: parseInt(id),
           name_c: contactData.name_c,
@@ -142,7 +154,17 @@ class ContactService {
           company_c: contactData.company_c,
           notes_c: contactData.notes_c,
           tags_c: contactData.tags_c
-        }]
+        }].map(record => {
+          // Filter out empty, null, and undefined values to prevent "Each record must contain at least one field" error
+          const filteredRecord = {};
+          Object.keys(record).forEach(key => {
+            const value = record[key];
+            if (value !== null && value !== undefined && value !== '') {
+              filteredRecord[key] = value;
+            }
+          });
+          return filteredRecord;
+        })
       };
 
       const response = await apperClient.updateRecord(this.tableName, payload);

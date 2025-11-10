@@ -111,14 +111,16 @@ const DealModal = ({ isOpen, onClose, deal, onSave }) => {
 
     setIsLoading(true);
     try {
-      const dealData = {
-        ...formData,
-        value: parseFloat(formData.value),
-        probability: parseInt(formData.probability),
+const dealData = {
+        title_c: formData.title,
+        value_c: parseFloat(formData.value),
+        stage_c: formData.stage,
+        probability_c: parseInt(formData.probability),
+        expected_close_date_c: formData.expectedCloseDate,
+        contact_id_c: parseInt(formData.contactId)
       };
 
       await onSave(dealData);
-      toast.success(deal ? "Deal updated successfully!" : "Deal created successfully!");
       onClose();
     } catch (error) {
       toast.error("Failed to save deal. Please try again.");

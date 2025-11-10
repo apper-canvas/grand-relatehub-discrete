@@ -81,7 +81,14 @@ const TaskModal = ({ isOpen, onClose, task, onSave }) => {
 
     setIsLoading(true);
     try {
-      await onSave(formData);
+const taskData = {
+        title_c: formData.title,
+        contact_id_c: parseInt(formData.contactId),
+        due_date_c: formData.dueDate,
+        completed_c: false
+      };
+
+      await onSave(taskData);
       toast.success(task ? "Task updated successfully!" : "Task created successfully!");
       onClose();
     } catch (error) {
