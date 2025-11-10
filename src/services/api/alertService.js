@@ -1,7 +1,9 @@
-import { taskService } from './taskService';
-import { activityService } from './activityService';
-import { contactService } from './contactService';
-import { isToday, isTomorrow, isAfter, subDays, format } from 'date-fns';
+import { taskService } from "./taskService";
+import { activityService } from "./activityService";
+import { contactService } from "./contactService";
+import { format, isAfter, isToday, isTomorrow, subDays, parseISO } from "date-fns";
+import React from "react";
+import Error from "@/components/ui/Error";
 
 class AlertService {
   constructor() {
@@ -13,7 +15,7 @@ class AlertService {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
-  async getAll() {
+async getAll() {
     await this.delay();
     
     try {
@@ -28,65 +30,67 @@ class AlertService {
 
       // Task-based alerts
       tasks.forEach(task => {
-        if (task.completed) return;
+        if (task.completed_c) return;
 
-        const dueDate = new Date(task.dueDate);
         const alertKey = `task-${task.Id}`;
 
-        if (this.dismissedAlerts.has(alertKey)) return;
+        // Overdue tasks (past due date and not completed)
+        if (task.due_date_c) {
+          const dueDate = parseISO(task.due_date_c);
+          
+          if (!task.completed_c && isAfter(now, dueDate) && !this.dismissedAlerts.has(alertKey)) {
+alerts.push({
+              Id: `overdue-${task.Id}`,
+              type: 'task_overdue',
+              priority: 'high',
+              title: 'Task Overdue',
+              message: `"${task.title_c}" was due ${format(dueDate, 'MMM d, yyyy')}`,
+              taskId: task.Id,
+              task: task,
+              timestamp: task.due_date_c,
+              actions: [
+                { type: 'complete', label: 'Mark Complete' },
+                { type: 'dismiss', label: 'Dismiss' }
+              ]
+            });
+          }
 
-        // Overdue tasks
-        if (isAfter(now, dueDate)) {
-          alerts.push({
-            Id: `overdue-${task.Id}`,
-            type: 'task_overdue',
-            priority: 'high',
-            title: 'Overdue Task',
-            message: `"${task.title}" was due ${format(dueDate, 'MMM d, yyyy')}`,
-            taskId: task.Id,
-            task: task,
-            timestamp: task.dueDate,
-            actions: [
-              { type: 'complete', label: 'Mark Complete' },
-              { type: 'dismiss', label: 'Dismiss' }
-            ]
-          });
-        }
-        // Tasks due today
-        else if (isToday(dueDate)) {
-          alerts.push({
-            Id: `due-today-${task.Id}`,
-            type: 'task_due_today',
-            priority: 'medium',
-            title: 'Due Today',
-            message: `"${task.title}" is due today`,
-            taskId: task.Id,
-            task: task,
-            timestamp: task.dueDate,
-            actions: [
-              { type: 'complete', label: 'Mark Complete' },
-              { type: 'dismiss', label: 'Dismiss' }
-            ]
-          });
-        }
-        // Tasks due tomorrow
-        else if (isTomorrow(dueDate)) {
-          alerts.push({
-            Id: `due-tomorrow-${task.Id}`,
-            type: 'task_due_tomorrow',
-            priority: 'low',
-            title: 'Due Tomorrow',
-            message: `"${task.title}" is due tomorrow`,
-            taskId: task.Id,
-            task: task,
-            timestamp: task.dueDate,
-            actions: [
-              { type: 'dismiss', label: 'Dismiss' }
-            ]
-          });
-        }
-      });
+          // Tasks due today
+          if (!task.completed_c && isToday(dueDate) && !this.dismissedAlerts.has(alertKey)) {
+            alerts.push({
+              Id: `due-today-${task.Id}`,
+              type: 'task_due_today',
+              priority: 'medium',
+              title: 'Task Due Today',
+              message: `"${task.title_c}" is due today`,
+              taskId: task.Id,
+              task: task,
+              timestamp: task.due_date_c,
+              actions: [
+                {
+                  label: 'Mark Complete',
+                  action: 'complete_task'
+                }
+              ]
+            });
+          }
 
+          // Tasks due tomorrow
+          if (!task.completed_c && isTomorrow(dueDate) && !this.dismissedAlerts.has(alertKey)) {
+            alerts.push({
+              Id: `due-tomorrow-${task.Id}`,
+              type: 'task_due_tomorrow',
+              priority: 'low',
+              title: 'Task Due Tomorrow',
+              message: `"${task.title_c}" is due tomorrow`,
+              taskId: task.Id,
+              task: task,
+              timestamp: task.due_date_c,
+              actions: []
+            });
+          }
+        }
+});
       // Activity-based alerts (follow-ups needed)
       const sevenDaysAgo = subDays(now, 7);
       const recentActivities = activities
@@ -98,38 +102,40 @@ class AlertService {
 
       // Group by contact and suggest follow-ups for recent activities
       const contactActivityMap = {};
-      recentActivities.forEach(activity => {
-        if (!contactActivityMap[activity.contactId]) {
-          contactActivityMap[activity.contactId] = [];
+recentActivities.forEach(activity => {
+        if (!contactActivityMap[activity.contact_id_c?.Id]) {
+          contactActivityMap[activity.contact_id_c?.Id] = [];
         }
-        contactActivityMap[activity.contactId].push(activity);
+        contactActivityMap[activity.contact_id_c?.Id].push(activity);
       });
 
       Object.entries(contactActivityMap).forEach(([contactId, contactActivities]) => {
         const alertKey = `follow-up-${contactId}`;
         if (this.dismissedAlerts.has(alertKey)) return;
-
-        const contact = contacts.find(c => c.Id === parseInt(contactId));
+const contact = contacts.find(c => c.Id === parseInt(contactId));
         const latestActivity = contactActivities[0];
         
         if (contact && contactActivities.length > 0) {
-          alerts.push({
-            Id: `follow-up-${contactId}`,
-            type: 'contact_follow_up',
-            priority: 'medium',
-            title: 'Follow-up Needed',
-            message: `${contact.name} - ${contactActivities.length} recent ${contactActivities.length === 1 ? 'activity' : 'activities'}`,
-            contactId: parseInt(contactId),
-            contact: contact,
-            activities: contactActivities,
-            timestamp: latestActivity.timestamp,
-            actions: [
-              { type: 'dismiss', label: 'Dismiss' }
-            ]
-          });
+          const daysSinceLastActivity = (now.getTime() - new Date(latestActivity.timestamp_c).getTime()) / (1000 * 3600 * 24);
+          
+          if (daysSinceLastActivity >= 7) {
+            alerts.push({
+              Id: `follow-up-${contactId}`,
+              type: 'contact_follow_up',
+              priority: 'medium',
+              title: 'Follow-up Required',
+              message: `No recent activity with ${contact.name_c}`,
+              contactId: parseInt(contactId),
+              contact: contact,
+              activities: contactActivities,
+timestamp: latestActivity.timestamp_c,
+              actions: [
+                { type: 'dismiss', label: 'Dismiss' }
+              ]
+            });
+          }
         }
       });
-
       // Sort by priority and timestamp
       const priorityOrder = { high: 0, medium: 1, low: 2 };
       alerts.sort((a, b) => {
@@ -151,10 +157,10 @@ class AlertService {
     return { success: true };
   }
 
-  async completeTask(taskId) {
+async completeTask(taskId) {
     await this.delay(200);
     try {
-      await taskService.update(taskId, { completed: true });
+      await taskService.update(taskId, { completed_c: true });
       this.dismissedAlerts.add(`task-${taskId}`);
       return { success: true };
     } catch (error) {

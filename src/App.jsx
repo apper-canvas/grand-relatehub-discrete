@@ -1,7 +1,6 @@
 import { RouterProvider } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import { router } from "@/router";
-import { alertService } from "@/services/api/alertService";
 
 function App() {
   return (

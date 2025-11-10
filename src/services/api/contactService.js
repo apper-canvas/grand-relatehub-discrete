@@ -1,67 +1,218 @@
-import contactsData from "@/services/mockData/contacts.json";
+import { getApperClient } from "@/services/apperClient";
+import { toast } from "react-toastify";
 
 class ContactService {
   constructor() {
-    this.contacts = [...contactsData];
-  }
-
-  async delay() {
-    await new Promise(resolve => setTimeout(resolve, Math.random() * 300 + 200));
+    this.tableName = "contact_c";
   }
 
   async getAll() {
-    await this.delay();
-    return [...this.contacts];
+    try {
+      const apperClient = getApperClient();
+      if (!apperClient) {
+        throw new Error("ApperClient not initialized");
+      }
+
+      const response = await apperClient.fetchRecords(this.tableName, {
+        fields: [
+          {"field": {"Name": "name_c"}},
+          {"field": {"Name": "email_c"}},
+          {"field": {"Name": "phone_c"}},
+          {"field": {"Name": "company_c"}},
+          {"field": {"Name": "notes_c"}},
+          {"field": {"Name": "tags_c"}},
+          {"field": {"Name": "CreatedOn"}},
+          {"field": {"Name": "ModifiedOn"}}
+        ]
+      });
+
+      if (!response.success) {
+        console.error(response.message);
+        toast.error(response.message);
+        return [];
+      }
+
+      if (!response.data || response.data.length === 0) {
+        return [];
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching contacts:", error?.response?.data?.message || error);
+      return [];
+    }
   }
 
   async getById(id) {
-    await this.delay();
-    const contact = this.contacts.find(contact => contact.Id === parseInt(id));
-    if (!contact) {
-      throw new Error(`Contact with Id ${id} not found`);
+    try {
+      const apperClient = getApperClient();
+      if (!apperClient) {
+        throw new Error("ApperClient not initialized");
+      }
+
+      const response = await apperClient.getRecordById(this.tableName, id, {
+        fields: [
+          {"field": {"Name": "name_c"}},
+          {"field": {"Name": "email_c"}},
+          {"field": {"Name": "phone_c"}},
+          {"field": {"Name": "company_c"}},
+          {"field": {"Name": "notes_c"}},
+          {"field": {"Name": "tags_c"}},
+          {"field": {"Name": "CreatedOn"}},
+          {"field": {"Name": "ModifiedOn"}}
+        ]
+      });
+
+      if (!response?.data) {
+        return null;
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching contact ${id}:`, error?.response?.data?.message || error);
+      return null;
     }
-    return { ...contact };
   }
 
   async create(contactData) {
-    await this.delay();
-    const maxId = this.contacts.length > 0 ? Math.max(...this.contacts.map(c => c.Id)) : 0;
-    const newContact = {
-      Id: maxId + 1,
-      ...contactData,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    this.contacts.push(newContact);
-    return { ...newContact };
+    try {
+      const apperClient = getApperClient();
+      if (!apperClient) {
+        throw new Error("ApperClient not initialized");
+      }
+
+      // Only include updateable fields
+      const payload = {
+        records: [{
+          name_c: contactData.name_c,
+          email_c: contactData.email_c,
+          phone_c: contactData.phone_c,
+          company_c: contactData.company_c,
+          notes_c: contactData.notes_c,
+          tags_c: contactData.tags_c
+        }]
+      };
+
+      const response = await apperClient.createRecord(this.tableName, payload);
+
+      if (!response.success) {
+        console.error(response.message);
+        toast.error(response.message);
+        return null;
+      }
+
+      if (response.results) {
+        const successful = response.results.filter(r => r.success);
+        const failed = response.results.filter(r => !r.success);
+
+        if (failed.length > 0) {
+          console.error(`Failed to create ${failed.length} contacts: ${JSON.stringify(failed)}`);
+          failed.forEach(record => {
+            record.errors?.forEach(error => toast.error(`${error.fieldLabel}: ${error}`));
+            if (record.message) toast.error(record.message);
+          });
+        }
+
+        if (successful.length > 0) {
+          return successful[0].data;
+        }
+      }
+
+      return null;
+    } catch (error) {
+      console.error("Error creating contact:", error?.response?.data?.message || error);
+      return null;
+    }
   }
 
   async update(id, contactData) {
-    await this.delay();
-    const index = this.contacts.findIndex(contact => contact.Id === parseInt(id));
-    if (index === -1) {
-      throw new Error(`Contact with Id ${id} not found`);
+    try {
+      const apperClient = getApperClient();
+      if (!apperClient) {
+        throw new Error("ApperClient not initialized");
+      }
+
+      // Only include updateable fields
+      const payload = {
+        records: [{
+          Id: parseInt(id),
+          name_c: contactData.name_c,
+          email_c: contactData.email_c,
+          phone_c: contactData.phone_c,
+          company_c: contactData.company_c,
+          notes_c: contactData.notes_c,
+          tags_c: contactData.tags_c
+        }]
+      };
+
+      const response = await apperClient.updateRecord(this.tableName, payload);
+
+      if (!response.success) {
+        console.error(response.message);
+        toast.error(response.message);
+        return null;
+      }
+
+      if (response.results) {
+        const successful = response.results.filter(r => r.success);
+        const failed = response.results.filter(r => !r.success);
+
+        if (failed.length > 0) {
+          console.error(`Failed to update ${failed.length} contacts: ${JSON.stringify(failed)}`);
+          failed.forEach(record => {
+            record.errors?.forEach(error => toast.error(`${error.fieldLabel}: ${error}`));
+            if (record.message) toast.error(record.message);
+          });
+        }
+
+        if (successful.length > 0) {
+          return successful[0].data;
+        }
+      }
+
+      return null;
+    } catch (error) {
+      console.error("Error updating contact:", error?.response?.data?.message || error);
+      return null;
     }
-    
-    this.contacts[index] = {
-      ...this.contacts[index],
-      ...contactData,
-      Id: parseInt(id),
-      updatedAt: new Date().toISOString(),
-    };
-    
-    return { ...this.contacts[index] };
   }
 
   async delete(id) {
-    await this.delay();
-    const index = this.contacts.findIndex(contact => contact.Id === parseInt(id));
-    if (index === -1) {
-      throw new Error(`Contact with Id ${id} not found`);
+    try {
+      const apperClient = getApperClient();
+      if (!apperClient) {
+        throw new Error("ApperClient not initialized");
+      }
+
+      const response = await apperClient.deleteRecord(this.tableName, {
+        RecordIds: [parseInt(id)]
+      });
+
+      if (!response.success) {
+        console.error(response.message);
+        toast.error(response.message);
+        return false;
+      }
+
+      if (response.results) {
+        const successful = response.results.filter(r => r.success);
+        const failed = response.results.filter(r => !r.success);
+
+        if (failed.length > 0) {
+          console.error(`Failed to delete ${failed.length} contacts: ${JSON.stringify(failed)}`);
+          failed.forEach(record => {
+            if (record.message) toast.error(record.message);
+          });
+        }
+
+        return successful.length > 0;
+      }
+
+      return false;
+    } catch (error) {
+      console.error("Error deleting contact:", error?.response?.data?.message || error);
+      return false;
     }
-    
-    const deletedContact = this.contacts.splice(index, 1)[0];
-    return { ...deletedContact };
   }
 }
 

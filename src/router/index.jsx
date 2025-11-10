@@ -1,14 +1,29 @@
 import { createBrowserRouter } from "react-router-dom";
 import { lazy, Suspense } from "react";
-import Layout from "@/components/organisms/Layout";
+import { getRouteConfig } from "./route.utils";
 
-// Lazy load all page components
+// Root layout
+const Root = lazy(() => import("@/layouts/Root"));
+
+// Layout components
+const Layout = lazy(() => import("@/components/organisms/Layout"));
+
+// Page components
 const Dashboard = lazy(() => import("@/components/pages/Dashboard"));
 const Contacts = lazy(() => import("@/components/pages/Contacts"));
 const Pipeline = lazy(() => import("@/components/pages/Pipeline"));
 const Tasks = lazy(() => import("@/components/pages/Tasks"));
 const NotFound = lazy(() => import("@/components/pages/NotFound"));
 
+// Auth components
+const Login = lazy(() => import("@/pages/Login"));
+const Signup = lazy(() => import("@/pages/Signup"));
+const Callback = lazy(() => import("@/pages/Callback"));
+const ErrorPage = lazy(() => import("@/pages/ErrorPage"));
+const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
+const PromptPassword = lazy(() => import("@/pages/PromptPassword"));
+
+// Loading fallback component
 const LoadingFallback = () => (
   <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
     <div className="text-center space-y-4">
@@ -20,55 +35,110 @@ const LoadingFallback = () => (
   </div>
 );
 
+// CreateRoute helper for page components with Suspense
+const createRoute = ({
+  path,
+  index,
+  element,
+  access,
+  children,
+  ...meta
+}) => {
+  // Get config for this route
+  let configPath;
+  if (index) {
+    configPath = "/";
+  } else {
+    configPath = path.startsWith('/') ? path : `/${path}`;
+  }
+
+  const config = getRouteConfig(configPath);
+  const finalAccess = access || config?.allow;
+
+  const route = {
+    ...(index ? { index: true } : { path }),
+    element: element ? <Suspense fallback={<LoadingFallback />}>{element}</Suspense> : element,
+    handle: {
+      access: finalAccess,
+      ...meta,
+    },
+  };
+
+  if (children && children.length > 0) {
+    route.children = children;
+  }
+
+  return route;
+};
+
+// Main application routes (protected)
 const mainRoutes = [
-  {
+  createRoute({
     path: "",
     index: true,
-    element: (
-      <Suspense fallback={<LoadingFallback />}>
-        <Dashboard />
-      </Suspense>
-    ),
-  },
-  {
+    element: <Dashboard />,
+  }),
+  createRoute({
     path: "contacts",
-    element: (
-      <Suspense fallback={<LoadingFallback />}>
-        <Contacts />
-      </Suspense>
-    ),
-  },
-  {
+    element: <Contacts />,
+  }),
+  createRoute({
     path: "pipeline",
-    element: (
-      <Suspense fallback={<LoadingFallback />}>
-        <Pipeline />
-      </Suspense>
-    ),
-  },
-  {
+    element: <Pipeline />,
+  }),
+  createRoute({
     path: "tasks",
-    element: (
-      <Suspense fallback={<LoadingFallback />}>
-        <Tasks />
-      </Suspense>
-    ),
-  },
-  {
+    element: <Tasks />,
+  }),
+  createRoute({
     path: "*",
-    element: (
-      <Suspense fallback={<LoadingFallback />}>
-        <NotFound />
-      </Suspense>
-    ),
-  },
+    element: <NotFound />,
+  }),
 ];
 
+// Auth routes (public)
+const authRoutes = [
+  createRoute({
+    path: "login",
+    element: <Login />,
+  }),
+  createRoute({
+    path: "signup", 
+    element: <Signup />,
+  }),
+  createRoute({
+    path: "callback",
+    element: <Callback />,
+  }),
+  createRoute({
+    path: "error",
+    element: <ErrorPage />,
+  }),
+  createRoute({
+    path: "reset-password/:appId/:fields",
+    element: <ResetPassword />,
+  }),
+  createRoute({
+    path: "prompt-password/:appId/:emailAddress/:provider",
+    element: <PromptPassword />,
+  }),
+];
+
+// Router configuration
 const routes = [
   {
     path: "/",
-    element: <Layout />,
-    children: mainRoutes,
+    element: <Suspense fallback={<LoadingFallback />}><Root /></Suspense>,
+    children: [
+      // Main protected routes with Layout
+      {
+        path: "/",
+        element: <Suspense fallback={<LoadingFallback />}><Layout /></Suspense>,
+        children: mainRoutes,
+      },
+      // Auth routes without Layout
+      ...authRoutes,
+    ],
   },
 ];
 
