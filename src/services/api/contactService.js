@@ -76,6 +76,21 @@ class ContactService {
     }
   }
 
+// Helper function to validate and format tags for MultiPicklist
+  validateAndFormatTags(tags) {
+    if (!tags) return '';
+    
+    const allowedTags = ['lead', 'customer', 'partner'];
+    const tagArray = typeof tags === 'string' 
+      ? tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0)
+      : [];
+    
+    // Filter only valid tags
+    const validTags = tagArray.filter(tag => allowedTags.includes(tag.toLowerCase()));
+    
+    return validTags.join(',');
+  }
+
   async create(contactData) {
     try {
       const apperClient = getApperClient();
@@ -84,20 +99,6 @@ class ContactService {
       }
 
       // Only include updateable fields
-// Helper function to validate and format tags for MultiPicklist
-    const validateAndFormatTags = (tags) => {
-      if (!tags) return '';
-      
-      const allowedTags = ['lead', 'customer', 'partner'];
-      const tagArray = typeof tags === 'string' 
-        ? tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0)
-        : [];
-      
-      // Filter only valid tags
-      const validTags = tagArray.filter(tag => allowedTags.includes(tag.toLowerCase()));
-      
-      return validTags.join(',');
-    };
 
     const payload = {
       records: [{
@@ -106,7 +107,7 @@ class ContactService {
         phone_c: contactData.phone_c,
         company_c: contactData.company_c,
         notes_c: contactData.notes_c,
-        tags_c: validateAndFormatTags(contactData.tags_c)
+tags_c: this.validateAndFormatTags(contactData.tags_c)
         }].map(record => {
           // Filter out empty, null, and undefined values to prevent "Each record must contain at least one field" error
           const filteredRecord = {};
@@ -168,7 +169,7 @@ const payload = {
         phone_c: contactData.phone_c,
         company_c: contactData.company_c,
         notes_c: contactData.notes_c,
-        tags_c: validateAndFormatTags(contactData.tags_c)
+tags_c: this.validateAndFormatTags(contactData.tags_c)
         }].map(record => {
           // Filter out empty, null, and undefined values to prevent "Each record must contain at least one field" error
           const filteredRecord = {};
