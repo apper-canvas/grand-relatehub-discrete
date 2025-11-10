@@ -41,8 +41,9 @@ const ContactModal = ({ isOpen, onClose, contact, onSave }) => {
     setErrors({});
   }, [contact, isOpen]);
 
-  const validateForm = () => {
+const validateForm = () => {
     const newErrors = {};
+    const allowedTags = ['lead', 'customer', 'partner'];
 
     if (!formData.name.trim()) {
       newErrors.name = "Name is required";
@@ -56,6 +57,16 @@ const ContactModal = ({ isOpen, onClose, contact, onSave }) => {
 
     if (!formData.phone.trim()) {
       newErrors.phone = "Phone is required";
+    }
+
+    // Validate tags against allowed picklist values
+    if (formData.tags.trim()) {
+      const tags = formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+      const invalidTags = tags.filter(tag => !allowedTags.includes(tag.toLowerCase()));
+      
+      if (invalidTags.length > 0) {
+        newErrors.tags = `Invalid tags: ${invalidTags.join(', ')}. Allowed tags are: ${allowedTags.join(', ')}`;
+      }
     }
 
     setErrors(newErrors);
@@ -164,12 +175,13 @@ const contactData = {
               placeholder="Enter phone number"
             />
 
-            <FormField
+<FormField
               label="Tags"
               value={formData.tags}
               onChange={(e) => handleChange("tags", e.target.value)}
               error={errors.tags}
-              placeholder="Enter tags separated by commas"
+              placeholder="lead, customer, partner (comma-separated)"
+              help="Available tags: lead, customer, partner"
             />
 
             <FormField

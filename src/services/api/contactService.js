@@ -84,14 +84,29 @@ class ContactService {
       }
 
       // Only include updateable fields
-const payload = {
-        records: [{
-          name_c: contactData.name_c,
-          email_c: contactData.email_c,
-          phone_c: contactData.phone_c,
-          company_c: contactData.company_c,
-          notes_c: contactData.notes_c,
-          tags_c: contactData.tags_c
+// Helper function to validate and format tags for MultiPicklist
+    const validateAndFormatTags = (tags) => {
+      if (!tags) return '';
+      
+      const allowedTags = ['lead', 'customer', 'partner'];
+      const tagArray = typeof tags === 'string' 
+        ? tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0)
+        : [];
+      
+      // Filter only valid tags
+      const validTags = tagArray.filter(tag => allowedTags.includes(tag.toLowerCase()));
+      
+      return validTags.join(',');
+    };
+
+    const payload = {
+      records: [{
+        name_c: contactData.name_c,
+        email_c: contactData.email_c,
+        phone_c: contactData.phone_c,
+        company_c: contactData.company_c,
+        notes_c: contactData.notes_c,
+        tags_c: validateAndFormatTags(contactData.tags_c)
         }].map(record => {
           // Filter out empty, null, and undefined values to prevent "Each record must contain at least one field" error
           const filteredRecord = {};
@@ -146,14 +161,14 @@ const payload = {
 
       // Only include updateable fields
 const payload = {
-        records: [{
-          Id: parseInt(id),
-          name_c: contactData.name_c,
-          email_c: contactData.email_c,
-          phone_c: contactData.phone_c,
-          company_c: contactData.company_c,
-          notes_c: contactData.notes_c,
-          tags_c: contactData.tags_c
+      records: [{
+        Id: parseInt(id),
+        name_c: contactData.name_c,
+        email_c: contactData.email_c,
+        phone_c: contactData.phone_c,
+        company_c: contactData.company_c,
+        notes_c: contactData.notes_c,
+        tags_c: validateAndFormatTags(contactData.tags_c)
         }].map(record => {
           // Filter out empty, null, and undefined values to prevent "Each record must contain at least one field" error
           const filteredRecord = {};
