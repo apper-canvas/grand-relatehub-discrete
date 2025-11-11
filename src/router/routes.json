@@ -38,12 +38,25 @@
       "redirectOnDeny": "/login"
     }
   },
-  "/tasks": {
+"/tasks": {
     "allow": {
       "when": {
         "conditions": [
           {
             "label": "User must be logged in to view tasks",
+            "rule": "authenticated"
+          }
+        ]
+      },
+      "redirectOnDeny": "/login"
+    }
+  },
+  "/quotes": {
+    "allow": {
+      "when": {
+        "conditions": [
+          {
+            "label": "User must be logged in to view quotes",
             "rule": "authenticated"
           }
         ]

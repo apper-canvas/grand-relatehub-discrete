@@ -13,6 +13,7 @@ const Dashboard = lazy(() => import("@/components/pages/Dashboard"));
 const Contacts = lazy(() => import("@/components/pages/Contacts"));
 const Pipeline = lazy(() => import("@/components/pages/Pipeline"));
 const Tasks = lazy(() => import("@/components/pages/Tasks"));
+const Quotes = lazy(() => import("@/components/pages/Quotes"));
 const NotFound = lazy(() => import("@/components/pages/NotFound"));
 
 // Auth components
@@ -82,13 +83,17 @@ const mainRoutes = [
     path: "contacts",
     element: <Contacts />,
   }),
-  createRoute({
+createRoute({
     path: "pipeline",
     element: <Pipeline />,
   }),
   createRoute({
     path: "tasks",
     element: <Tasks />,
+  }),
+  createRoute({
+    path: "quotes",
+    element: <Quotes />,
   }),
   createRoute({
     path: "*",

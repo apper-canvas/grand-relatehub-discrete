@@ -9,11 +9,12 @@ const Header = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const navigation = [
+const navigation = [
     { name: "Dashboard", path: "/", icon: "LayoutDashboard" },
     { name: "Contacts", path: "/contacts", icon: "Users" },
     { name: "Pipeline", path: "/pipeline", icon: "GitBranch" },
     { name: "Tasks", path: "/tasks", icon: "CheckSquare" },
+    { name: "Quotes", path: "/quotes", icon: "FileText" },
   ];
 
 
