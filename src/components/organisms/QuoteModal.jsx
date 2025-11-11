@@ -36,8 +36,8 @@ const QuoteModal = ({ isOpen, onClose, quote, onSave, contacts = [], deals = [] 
       setFormData({
 Name: quote.Name || '',
         company_c: quote.company_c?.Name || quote.company_c || '',
-contact_id_c: parseInt(quote.contact_id_c?.Id || quote.contact_id_c) || '',
-        deal_id_c: parseInt(quote.deal_id_c?.Id || quote.deal_id_c) || '',
+        contact_id_c: quote.contact_id_c?.Id || quote.contact_id_c || '',
+        deal_id_c: quote.deal_id_c?.Id || quote.deal_id_c || '',
         quote_date_c: quote.quote_date_c || '',
         status_c: quote.status_c || 'Draft',
         delivery_method_c: quote.delivery_method_c || '',
